@@ -1,6 +1,7 @@
 package com.example.roundrobinserver.controller;
 
-import com.example.roundrobinserver.service.RoundRobinService;
+import com.example.roundrobinserver.service.models.EchoServerResponse;
+import com.example.roundrobinserver.service.models.IRoundRobinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,16 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Component
 public class RoundRobinController {
 
-    public RoundRobinService roundRobinService;
+    public IRoundRobinService roundRobinService;
 
     @Autowired
-    public RoundRobinController(RoundRobinService roundRobinService) {
+    public RoundRobinController(IRoundRobinService roundRobinService) {
         this.roundRobinService = roundRobinService;
     }
 
     @PostMapping("/roundrobin")
-    public String echo(@RequestBody String message) {
-        return roundRobinService.getServer().toString();
+    public EchoServerResponse echo(@RequestBody String message) {
+        return roundRobinService.routeRequest(message);
     }
 
 }

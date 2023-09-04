@@ -1,23 +1,25 @@
 package com.example.roundrobinserver.service;
 
 
-import com.example.roundrobinserver.config.EchoApiConfig;
+import com.example.roundrobinserver.service.models.EchoServerResponse;
+import com.example.roundrobinserver.service.models.IRequestExecutor;
+import com.example.roundrobinserver.service.models.IRoundRobinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-public class RoundRobinService {
+public class RoundRobinService implements IRoundRobinService {
 
-    private final EchoApiConfig echoApiConfig;
+    private final IRequestExecutor requestExecutor;
 
     @Autowired
-    public RoundRobinService(EchoApiConfig echoApiConfig) {
-        this.echoApiConfig = echoApiConfig;
+    public RoundRobinService(IRequestExecutor requestExecutor) {
+        this.requestExecutor = requestExecutor;
     }
 
-    public List<String> getServer() {
-        return echoApiConfig.getServers();
+
+    @Override
+    public EchoServerResponse routeRequest(String message) {
+        return requestExecutor.executeRequest(message);
     }
 }
