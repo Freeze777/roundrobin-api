@@ -1,4 +1,4 @@
-package com.example.simpleserver;
+package com.example.echoserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

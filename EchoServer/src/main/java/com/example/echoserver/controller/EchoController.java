@@ -1,4 +1,4 @@
-package com.example.simpleserver.controller;
+package com.example.echoserver.controller;
 
 
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,4 +1,4 @@
-package com.example.simpleserver;
+package com.example.echoserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
