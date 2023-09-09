@@ -1,8 +1,9 @@
 package com.example.roundrobinserver.controller;
 
-import com.example.roundrobinserver.service.models.EchoServerResponse;
 import com.example.roundrobinserver.service.models.IRoundRobinService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +21,12 @@ public class RoundRobinController {
     }
 
     @PostMapping("/roundrobin")
-    public EchoServerResponse echo(@RequestBody String message) {
-        return roundRobinService.routeRequest(message);
+    public ResponseEntity<String> echo(@RequestBody String message) {
+        var response = roundRobinService.routeRequest(message);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Upstream-Server", response.getUpstreamServerName());
+        response.getErrorMessage().ifPresent(errorMessage -> headers.add("X-Error-Message", errorMessage));
+        return new ResponseEntity<>(response.getResponseBody(), headers, response.getStatusCode());
     }
 
 }

@@ -11,5 +11,6 @@ import java.util.Optional;
 public class EchoServerResponse {
     private HttpStatusCode statusCode;
     private String responseBody;
+    private String upstreamServerName;
     private Optional<String> errorMessage;
 }
