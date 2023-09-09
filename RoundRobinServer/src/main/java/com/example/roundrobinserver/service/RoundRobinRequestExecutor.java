@@ -22,7 +22,7 @@ import static com.example.roundrobinserver.service.utils.HttpUtils.*;
 public class RoundRobinRequestExecutor implements IRequestExecutor {
     private final EchoApiConfig echoApiConfig;
     private final RestTemplate restTemplate;
-    private final AtomicLong requestCount = new AtomicLong(0);
+    private final AtomicLong requestCounter = new AtomicLong(0);
     private final Map<String, ServerStats> serverSuccessRate = new ConcurrentHashMap<>();
 
     @Autowired
@@ -38,7 +38,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
 
     private EchoServerResponse executeWithRetryAndBackoff(String requestBody, Function<String, EchoServerResponse> executorFunction) {
         int retries = echoApiConfig.getRetries();
-        int backoff = echoApiConfig.getBackoffMilliseconds();
+        int backoff = echoApiConfig.getBackoffMs();
         EchoServerResponse response = null;
         while (retries > 0) {
             response = executorFunction.apply(requestBody);
@@ -77,14 +77,14 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
                     .errorMessage(Optional.empty())
                     .upstreamServerName(server)
                     .build();
-        } catch (HttpClientErrorException ex) { // Handle 4xx errors (but 429 is retryable)
+        } catch (HttpClientErrorException ex) {
             return EchoServerResponse.builder()
                     .statusCode(ex.getStatusCode())
                     .responseBody(ex.getResponseBodyAsString())
                     .errorMessage(Optional.of(ex.getMessage()))
                     .upstreamServerName(server)
                     .build();
-        } catch (Exception ex) { // Handle 5xx errors + unexpected errors (5xx is retryable)
+        } catch (Exception ex) {
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
                     .errorMessage(Optional.of(ex.getMessage()))
@@ -107,7 +107,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     }
 
     private String getNextServer() {
-        int nextIndex = (int) (requestCount.getAndIncrement() % echoApiConfig.getServers().size());
+        int nextIndex = (int) (requestCounter.getAndIncrement() % echoApiConfig.getServers().size());
         return echoApiConfig.getServers().get(nextIndex);
     }
 }
