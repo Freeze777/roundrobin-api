@@ -1,4 +1,4 @@
-curl --location 'http://localhost:9001/roundrobin' \
+curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
 
@@ -9,7 +9,7 @@ curl --location 'http://localhost:9001/roundrobin' \
 echo ""
 echo "-------------------"
 
-curl --location 'http://localhost:9001/roundrobin' \
+curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
 
@@ -20,7 +20,7 @@ curl --location 'http://localhost:9001/roundrobin' \
 echo ""
 echo "-------------------"
 
-curl --location 'http://localhost:9001/roundrobin' \
+curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
 
@@ -32,7 +32,7 @@ echo ""
 echo "-------------------"
 
 # huge payload
-curl --location 'http://localhost:9001/roundrobin' \
+curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
     "foo": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris.",
@@ -47,6 +47,6 @@ echo ""
 echo "-------------------"
 
 # no payload
-curl --location 'http://localhost:9001/roundrobin' \
+curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{}'
