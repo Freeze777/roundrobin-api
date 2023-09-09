@@ -1,4 +1,4 @@
-package com.example.echoserver;
+package com.example.echoserver.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
