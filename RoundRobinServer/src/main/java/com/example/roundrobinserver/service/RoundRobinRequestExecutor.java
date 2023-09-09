@@ -61,7 +61,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
 
     private EchoServerResponse executeRequestHelper(String requestBody) {
         var server = getNextServer();
-        if (isHighSuccessRate(server)) {
+        if (isHealthy(server)) {
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.SERVICE_UNAVAILABLE)
                     .errorMessage(Optional.of("Service Unavailable"))
@@ -94,8 +94,8 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         }
     }
 
-    private boolean isHighSuccessRate(String server) {
-        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() > echoApiConfig.getMinSuccessRate();
+    private boolean isHealthy(String server) {
+        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() < echoApiConfig.getMinSuccessRate();
     }
 
     private void updateServerStats(EchoServerResponse response, boolean isSuccess) {
