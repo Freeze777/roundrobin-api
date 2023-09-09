@@ -19,15 +19,28 @@ class EchoControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    public void testEchoController() throws Exception {
+    public void testEchoControllerSuccess() throws Exception {
         var body = """
-                {
-                    "message": "Hello, World!"
-                }
-               """;
+                 {
+                     "message": "Hello, World!",
+                      "name": "John Doe"
+                 }
+                """;
         mockMvc.perform(post("/echo").content(body))
                 .andExpect(status().isOk())
                 .andExpect(content().string(equalTo(body)));
+    }
+
+    @Test
+    public void testEchoControllerFail() throws Exception {
+        var body = """
+                 {
+                     "message": "Im not a valid json
+                 }
+                """;
+        mockMvc.perform(post("/echo").content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(equalTo("[ERROR] : Invalid json payload")));
     }
 
 }
