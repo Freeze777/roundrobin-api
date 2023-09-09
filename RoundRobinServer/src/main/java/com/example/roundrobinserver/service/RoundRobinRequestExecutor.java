@@ -4,6 +4,8 @@ import com.example.roundrobinserver.config.EchoApiConfig;
 import com.example.roundrobinserver.service.models.EchoServerResponse;
 import com.example.roundrobinserver.service.models.IRequestExecutor;
 import com.example.roundrobinserver.service.models.ServerStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import static com.example.roundrobinserver.service.utils.HttpUtils.*;
 
 @Service
 public class RoundRobinRequestExecutor implements IRequestExecutor {
+    private static final Logger logger = LoggerFactory.getLogger(RoundRobinRequestExecutor.class);
     private final EchoApiConfig echoApiConfig;
     private final RestTemplate restTemplate;
     private final AtomicLong requestCounter = new AtomicLong(0);
@@ -44,16 +47,18 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         while (retries > 0) {
             response = executorFunction.apply(requestBody);
             if (isSuccessful(response.getStatusCode()) || !isRetryableError(response.getStatusCode())) {
+                logger.info("Request to server {} was completed with {} status", response.getUpstreamServerName(), response.getStatusCode());
                 updateServerStats(response, true);
                 return response;
             }
             retries--;
             backoffTimeMs *= BACKOFF_MULTIPLIER;
+            logger.error("Request to server {} failed for {}. Retrying in {} ms", response.getUpstreamServerName(), requestBody, backoffTimeMs);
             updateServerStats(response, false);
             try {
                 Thread.sleep(backoffTimeMs);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
         }
         return response;
@@ -61,7 +66,8 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
 
     private EchoServerResponse executeRequestHelper(String requestBody) {
         var server = getNextServer();
-        if (isHealthy(server)) {
+        if (isUnhealthy(server)) {
+            logger.warn("Server {} is unhealthy with success-rate={}%", server, serverSuccessRate.get(server).getSuccessRate() * 100);
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.SERVICE_UNAVAILABLE)
                     .errorMessage(Optional.of("Service Unavailable"))
@@ -79,6 +85,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
                     .upstreamServerName(server)
                     .build();
         } catch (HttpClientErrorException ex) {
+            logger.error("Error while executing {} to server {}", request, server, ex);
             return EchoServerResponse.builder()
                     .statusCode(ex.getStatusCode())
                     .responseBody(ex.getResponseBodyAsString())
@@ -86,6 +93,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
                     .upstreamServerName(server)
                     .build();
         } catch (Exception ex) {
+            logger.error("Error while executing {} to server {}", request, server, ex);
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
                     .errorMessage(Optional.of(ex.getMessage()))
@@ -94,7 +102,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         }
     }
 
-    private boolean isHealthy(String server) {
+    private boolean isUnhealthy(String server) {
         return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() < echoApiConfig.getMinSuccessRate();
     }
 

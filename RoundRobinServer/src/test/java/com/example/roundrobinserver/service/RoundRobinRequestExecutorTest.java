@@ -103,7 +103,7 @@ public class RoundRobinRequestExecutorTest {
     }
 
     @Test
-    public void testResourceAccessException() {
+    public void testIOErrors() {
         var mockEchoApiConfig = getMockEchoApiConfig(3, 1);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class)))
