@@ -24,6 +24,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     private final RestTemplate restTemplate;
     private final AtomicLong requestCounter = new AtomicLong(0);
     private final Map<String, ServerStats> serverSuccessRate = new ConcurrentHashMap<>();
+    private static final int BACKOFF_MULTIPLIER = 2;
 
     @Autowired
     public RoundRobinRequestExecutor(EchoApiConfig echoApiConfig, RestTemplate restTemplate) {
@@ -32,13 +33,13 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     }
 
     @Override
-    public EchoServerResponse executeRequest(String requestBody) {
-        return executeWithRetryAndBackoff(requestBody, this::executeRequestHelper);
+    public EchoServerResponse executeRequest(String request) {
+        return executeWithRetryAndBackoff(request, this::executeRequestHelper);
     }
 
     private EchoServerResponse executeWithRetryAndBackoff(String requestBody, Function<String, EchoServerResponse> executorFunction) {
-        int retries = echoApiConfig.getRetries();
-        int backoff = echoApiConfig.getBackoffMs();
+        var retries = echoApiConfig.getRetries();
+        var backoffTimeMs = echoApiConfig.getBackoffTimeMs();
         EchoServerResponse response = null;
         while (retries > 0) {
             response = executorFunction.apply(requestBody);
@@ -47,10 +48,10 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
                 return response;
             }
             retries--;
-            backoff *= 2;
+            backoffTimeMs *= BACKOFF_MULTIPLIER;
             updateServerStats(response, false);
             try {
-                Thread.sleep(backoff);
+                Thread.sleep(backoffTimeMs);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -59,18 +60,18 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     }
 
     private EchoServerResponse executeRequestHelper(String requestBody) {
-        String server = getNextServer();
-        if (isAvailable(server)) {
+        var server = getNextServer();
+        if (isHighSuccessRate(server)) {
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.SERVICE_UNAVAILABLE)
                     .errorMessage(Optional.of("Service Unavailable"))
                     .upstreamServerName(server)
                     .build();
         }
-        String endpoint = String.format("http://%s/echo", server);
-        HttpEntity<String> request = buildRequest(requestBody);
+        var endpoint = String.format("http://%s/echo", server);
+        var request = buildRequest(requestBody);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
+            var response = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
             return EchoServerResponse.builder()
                     .statusCode(response.getStatusCode())
                     .responseBody(response.getBody())
@@ -93,14 +94,14 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         }
     }
 
-    private boolean isAvailable(String server) {
-        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() < echoApiConfig.getMinSuccessRate();
+    private boolean isHighSuccessRate(String server) {
+        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() > echoApiConfig.getMinSuccessRate();
     }
 
     private void updateServerStats(EchoServerResponse response, boolean isSuccess) {
         serverSuccessRate.compute(response.getUpstreamServerName(), (k, v) -> {
-            if (v == null) return new ServerStats();
-            ServerStats stats = serverSuccessRate.get(k);
+            if (v == null) return new ServerStats(isSuccess);
+            var stats = serverSuccessRate.get(k);
             stats.updateStats(isSuccess);
             return stats;
         });

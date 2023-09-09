@@ -14,7 +14,7 @@ public class EchoApiConfig {
 
     @Value("${echo.server.backoffms}")
     @Getter
-    private int backoffMs;
+    private int backoffTimeMs;
 
     @Value("${echo.server.retries}")
     @Getter

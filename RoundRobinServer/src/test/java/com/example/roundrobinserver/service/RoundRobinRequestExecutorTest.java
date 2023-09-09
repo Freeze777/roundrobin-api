@@ -36,7 +36,7 @@ public class RoundRobinRequestExecutorTest {
         for (int i = 1; i <= numApiServers; i++) serverList.add(String.format("server%d", i));
         when(echoApiConfig.getServers()).thenReturn(serverList);
         when(echoApiConfig.getRetries()).thenReturn(1);
-        when(echoApiConfig.getBackoffMs()).thenReturn(1);
+        when(echoApiConfig.getBackoffTimeMs()).thenReturn(1);
         when(echoApiConfig.getMinSuccessRate()).thenReturn(0.1);
         when(echoApiConfig.getServers()).thenReturn(serverList);
 
