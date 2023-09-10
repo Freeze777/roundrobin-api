@@ -53,8 +53,10 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
             }
             retries--;
             backoffTimeMs *= BACKOFF_MULTIPLIER;
-            logger.error("Request to server {} failed for {}. Retrying in {} ms", response.getUpstreamServerName(), requestBody, backoffTimeMs);
             updateServerStats(response, false);
+            logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms",
+                    response.getUpstreamServerName(), getServerSuccessRate(response.getUpstreamServerName()),
+                    requestBody, backoffTimeMs);
             try {
                 Thread.sleep(backoffTimeMs);
             } catch (InterruptedException e) {
@@ -67,7 +69,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     private EchoServerResponse executeRequestHelper(String requestBody) {
         var server = getNextServer();
         if (isUnhealthy(server)) {
-            logger.warn("Server {} is unhealthy with success-rate={}%", server, serverSuccessRate.get(server).getSuccessRate() * 100);
+            logger.warn("Server {} is unhealthy with success-rate={}%", server, getServerSuccessRate(server));
             return EchoServerResponse.builder()
                     .statusCode(HttpStatus.SERVICE_UNAVAILABLE)
                     .errorMessage(Optional.of("Service Unavailable"))
@@ -103,12 +105,12 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     }
 
     private boolean isUnhealthy(String server) {
-        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() < echoApiConfig.getMinSuccessRate();
+        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() <= echoApiConfig.getMinSuccessRate();
     }
 
     private void updateServerStats(EchoServerResponse response, boolean isSuccess) {
         serverSuccessRate.compute(response.getUpstreamServerName(), (k, v) -> {
-            if (v == null) return new ServerStats(isSuccess);
+            if (v == null) return new ServerStats();
             var stats = serverSuccessRate.get(k);
             stats.updateStats(isSuccess);
             return stats;
@@ -118,5 +120,9 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     private String getNextServer() {
         int nextIndex = (int) (requestCounter.getAndIncrement() % echoApiConfig.getServers().size());
         return echoApiConfig.getServers().get(nextIndex);
+    }
+
+    private double getServerSuccessRate(String server) {
+        return serverSuccessRate.get(server).getSuccessRate() * 100.0;
     }
 }

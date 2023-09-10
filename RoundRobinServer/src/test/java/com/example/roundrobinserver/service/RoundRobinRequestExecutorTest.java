@@ -62,7 +62,7 @@ public class RoundRobinRequestExecutorTest {
                 .thenReturn(mockResponseEntity);
 
         var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate);
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 15; i++) {
             assertTrue(roundRobinRequestExecutor.executeRequest("MockRequest").getStatusCode().is5xxServerError());
         }
 
