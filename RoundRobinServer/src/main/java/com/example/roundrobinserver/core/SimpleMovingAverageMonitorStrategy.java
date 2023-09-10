@@ -2,7 +2,6 @@ package com.example.roundrobinserver.core;
 
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
 import com.example.roundrobinserver.core.models.ServerStats;
-import com.example.roundrobinserver.service.models.EchoServerResponse;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,12 +14,14 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
         this.minSuccessRate = minSuccessRate;
     }
 
+    @Override
     public double getServerSuccessRate(String server) {
         return serverSuccessRate.get(server).getSuccessRate() * 100.0;
     }
 
-    public void updateServerStats(EchoServerResponse response, boolean isSuccess) {
-        serverSuccessRate.compute(response.getUpstreamServerName(), (k, v) -> {
+    @Override
+    public void updateServerStats(String server, boolean isSuccess) {
+        serverSuccessRate.compute(server, (k, v) -> {
             if (v == null) return new ServerStats();
             var stats = serverSuccessRate.get(k);
             stats.setSuccessRate((stats.getSuccessRate() * stats.getTotalRequests() + (isSuccess ? 1.0 : 0.0)) / (stats.getTotalRequests() + 1.0));
@@ -29,6 +30,7 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
         });
     }
 
+    @Override
     public boolean isUnhealthy(String server) {
         return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() <= minSuccessRate;
     }

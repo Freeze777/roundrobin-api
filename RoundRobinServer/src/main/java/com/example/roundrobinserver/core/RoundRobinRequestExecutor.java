@@ -15,56 +15,30 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
-import java.util.function.Function;
 
-import static com.example.roundrobinserver.utils.HttpUtils.*;
-
+import static com.example.roundrobinserver.utils.HttpUtils.buildRequest;
 
 @Service
 public class RoundRobinRequestExecutor implements IRequestExecutor {
     private static final Logger logger = LoggerFactory.getLogger(RoundRobinRequestExecutor.class);
-    private final RetryConfig retryConfig;
     private final RestTemplate restTemplate;
     private final IServerMonitorStrategy serverMonitor;
     private final IServerSelectionStrategy serverSelector;
+    private final RetryWrapper retryWrapper;
 
     @Autowired
     public RoundRobinRequestExecutor(RetryConfig retryConfig,
                                      RestTemplate restTemplate, IServerMonitorStrategy serverMonitor,
                                      IServerSelectionStrategy serverSelectionStrategy) {
-        this.retryConfig = retryConfig;
         this.restTemplate = restTemplate;
         this.serverMonitor = serverMonitor;
         this.serverSelector = serverSelectionStrategy;
+        this.retryWrapper = new RetryWrapper(retryConfig, serverMonitor);
     }
 
     @Override
     public EchoServerResponse executeRequest(String request) {
-        return executeWithRetryAndBackoff(request, this::executeRequestHelper);
-    }
-
-    private EchoServerResponse executeWithRetryAndBackoff(String request, Function<String, EchoServerResponse> executorFunction) {
-        var retries = retryConfig.getRetries();
-        var backoffTimeMs = retryConfig.getBackoffTimeMs();
-        EchoServerResponse response = null;
-        while (retries > 0) {
-            response = executorFunction.apply(request);
-            if (isSuccessful(response.getStatusCode()) || !isRetryableError(response.getStatusCode())) {
-                logger.info("Request to server {} was completed with {} status", response.getUpstreamServerName(), response.getStatusCode());
-                serverMonitor.updateServerStats(response, true);
-                return response;
-            }
-            retries--;
-            backoffTimeMs *= retryConfig.getBackoffMultiplier();
-            serverMonitor.updateServerStats(response, false);
-            logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms", response.getUpstreamServerName(), serverMonitor.getServerSuccessRate(response.getUpstreamServerName()), request, backoffTimeMs);
-            try {
-                Thread.sleep(backoffTimeMs);
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        return response;
+        return retryWrapper.execute(request, this::executeRequestHelper);
     }
 
     private EchoServerResponse executeRequestHelper(String request) {
