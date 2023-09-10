@@ -9,13 +9,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class RoundRobinServerApplicationTests {
+class RoundRobinServerIntegrationTests {
     @Autowired
     private MockMvc mockMvc;
 
@@ -48,39 +49,47 @@ class RoundRobinServerApplicationTests {
     @Test
     public void lowLoadConcurrentRequests() throws Exception {
         var threads = new ArrayList<Thread>();
+        var exceptions = new ArrayList<Exception>();
         for (int i = 0; i < 15; i++) {
             var body = "{ \"message\": \"Hello," + i + " World!\" }";
-            threads.add(new Thread(() -> {
+            var t = new Thread(() -> {
                 try {
                     mockMvc.perform(post("/api/echo").content(body))
                             .andExpect(status().isOk())
                             .andExpect(content().string(equalTo(body)));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    exceptions.add(e);
                 }
-            }));
+            });
+            t.setName("Thread-" + i);
+            threads.add(t);
         }
         threads.forEach(Thread::start);
         for (var thread : threads) thread.join();
+        assertTrue(exceptions.isEmpty());
     }
 
     @Test
     public void highLoadConcurrentRequests() throws Exception {
         var threads = new ArrayList<Thread>();
+        var exceptions = new ArrayList<Exception>();
         for (int i = 0; i < 500; i++) {
             var body = "{ \"message\": \"Hello," + i + " World!\" }";
-            threads.add(new Thread(() -> {
+            var t = new Thread(() -> {
                 try {
                     mockMvc.perform(post("/api/echo").content(body))
                             .andExpect(status().isOk())
                             .andExpect(content().string(equalTo(body)));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    exceptions.add(e);
                 }
-            }));
+            });
+            t.setName("Thread-" + i);
+            threads.add(t);
         }
         threads.forEach(Thread::start);
         for (var thread : threads) thread.join();
+        assertTrue(exceptions.isEmpty());
     }
 
 }
