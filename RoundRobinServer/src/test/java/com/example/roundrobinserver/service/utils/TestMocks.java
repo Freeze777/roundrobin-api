@@ -21,7 +21,7 @@ public class TestMocks {
     }
 
     public static IServerMonitorStrategy getMockMonitorStrategy() {
-        return new ExponentialMovingAverageMonitorStrategy(0.1);
+        return new ExponentialMovingAverageMonitorStrategy(0.1, 0.8);
     }
 
     public static IServerSelectionStrategy getMockServerSelectionStrategy(int numApiServers) {

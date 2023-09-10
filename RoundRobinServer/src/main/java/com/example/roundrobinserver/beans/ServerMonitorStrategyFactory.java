@@ -16,11 +16,14 @@ public class ServerMonitorStrategyFactory {
     @Value("${echo.server.health.monitor.strategy}")
     private String strategy;
 
+    @Value("${echo.server.health.monitor.ema.alpha}")
+    private double alpha;
+
     @Bean
     public IServerMonitorStrategy getServerMonitorStrategy() {
         switch (strategy) {
             case "EMA" -> {
-                return new ExponentialMovingAverageMonitorStrategy(minSuccessRate);
+                return new ExponentialMovingAverageMonitorStrategy(minSuccessRate, alpha);
             }
             case "SMA" -> {
                 return new SimpleMovingAverageMonitorStrategy(minSuccessRate);

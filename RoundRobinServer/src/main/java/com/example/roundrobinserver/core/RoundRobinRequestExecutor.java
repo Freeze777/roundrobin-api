@@ -45,7 +45,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         var server = serverSelector.getNextServer();
         if (serverMonitor.isUnhealthy(server)) {
             logger.warn("Server {} is unhealthy with success-rate={}", server, serverMonitor.getServerSuccessRate(server));
-            return EchoServerResponse.builder().statusCode(HttpStatus.SERVICE_UNAVAILABLE).errorMessage(Optional.of("Service Unavailable")).upstreamServerName(server).build();
+            return EchoServerResponse.builder().statusCode(HttpStatus.BAD_GATEWAY).errorMessage(Optional.of("Bad Gateway")).upstreamServerName(server).build();
         }
         var endpoint = String.format("http://%s/echo", server);
         var requestEntity = buildRequest(request);

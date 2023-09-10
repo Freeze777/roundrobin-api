@@ -65,7 +65,7 @@ public class RoundRobinRequestExecutorTest {
 
         // all servers are unhealthy
         for (int i = 0; i < numApiServers; i++) {
-            assertEquals(roundRobinRequestExecutor.executeRequest("MockRequest").getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
+            assertEquals(roundRobinRequestExecutor.executeRequest("MockRequest").getStatusCode(), HttpStatus.BAD_GATEWAY);
         }
     }
 

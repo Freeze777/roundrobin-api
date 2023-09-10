@@ -9,10 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExponentialMovingAverageMonitorStrategy implements IServerMonitorStrategy {
     private final Map<String, ServerStats> serverSuccessRate = new ConcurrentHashMap<>();
     private final double minSuccessRate;
-    private final static double ALPHA = 0.8;
+    private final double alpha;
 
-    public ExponentialMovingAverageMonitorStrategy(double minSuccessRate) {
+    public ExponentialMovingAverageMonitorStrategy(double minSuccessRate, double alpha) {
         this.minSuccessRate = minSuccessRate;
+        this.alpha = alpha;
     }
 
     @Override
@@ -25,7 +26,7 @@ public class ExponentialMovingAverageMonitorStrategy implements IServerMonitorSt
         serverSuccessRate.compute(server, (k, v) -> {
             if (v == null) return new ServerStats();
             var stats = serverSuccessRate.get(k);
-            stats.setSuccessRate(ALPHA * stats.getSuccessRate() + (isSuccess ? (1.0 - ALPHA) : 0.0));
+            stats.setSuccessRate(alpha * stats.getSuccessRate() + (isSuccess ? (1.0 - alpha) : 0.0));
             return stats;
         });
     }
