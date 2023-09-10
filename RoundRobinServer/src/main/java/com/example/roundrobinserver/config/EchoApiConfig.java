@@ -20,6 +20,10 @@ public class EchoApiConfig {
     @Getter
     private int retries;
 
+    @Value("${echo.server.backoffmultiplier}")
+    @Getter
+    private int backoffMultiplier;
+
     @Value("${echo.server.minsuccessrate}")
     @Getter
     private double minSuccessRate;

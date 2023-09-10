@@ -125,6 +125,7 @@ public class RoundRobinRequestExecutorTest {
         when(echoApiConfig.getServers()).thenReturn(serverList);
         when(echoApiConfig.getRetries()).thenReturn(retries);
         when(echoApiConfig.getBackoffTimeMs()).thenReturn(1);
+        when(echoApiConfig.getBackoffMultiplier()).thenReturn(2);
         when(echoApiConfig.getMinSuccessRate()).thenReturn(0.1);
         when(echoApiConfig.getServers()).thenReturn(serverList);
         return echoApiConfig;

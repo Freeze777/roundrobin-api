@@ -27,7 +27,6 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     private final RestTemplate restTemplate;
     private final AtomicLong requestCounter = new AtomicLong(0);
     private final Map<String, ServerStats> serverSuccessRate = new ConcurrentHashMap<>();
-    private static final int BACKOFF_MULTIPLIER = 2;
 
     @Autowired
     public RoundRobinRequestExecutor(EchoApiConfig echoApiConfig, RestTemplate restTemplate) {
@@ -52,7 +51,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
                 return response;
             }
             retries--;
-            backoffTimeMs *= BACKOFF_MULTIPLIER;
+            backoffTimeMs *= echoApiConfig.getBackoffMultiplier();
             updateServerStats(response, false);
             logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms",
                     response.getUpstreamServerName(), getServerSuccessRate(response.getUpstreamServerName()),
@@ -119,6 +118,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
 
     private String getNextServer() {
         int nextIndex = (int) (requestCounter.getAndIncrement() % echoApiConfig.getServers().size());
+        nextIndex = nextIndex < 0 ? nextIndex + echoApiConfig.getServers().size() : nextIndex;
         return echoApiConfig.getServers().get(nextIndex);
     }
 
