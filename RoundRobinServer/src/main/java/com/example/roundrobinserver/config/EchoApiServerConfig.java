@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class EchoApiConfig {
+public class EchoApiServerConfig {
     @Value("${echo.server.list}")
     @Getter
     private List<String> servers;
@@ -23,8 +23,4 @@ public class EchoApiConfig {
     @Value("${echo.server.backoffmultiplier}")
     @Getter
     private int backoffMultiplier;
-
-    @Value("${echo.server.minsuccessrate}")
-    @Getter
-    private double minSuccessRate;
 }
