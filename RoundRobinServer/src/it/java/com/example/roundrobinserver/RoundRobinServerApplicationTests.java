@@ -46,9 +46,9 @@ class RoundRobinServerApplicationTests {
 
 
     @Test
-    public void multipleConcurrentRequests() throws Exception {
+    public void lowLoadConcurrentRequests() throws Exception {
         var threads = new ArrayList<Thread>();
-        for (int i = 0; i < 12; i++) { // 4 per server
+        for (int i = 0; i < 12; i++) {
             var body = "{ \"message\": \"Hello," + i + " World!\" }";
             threads.add(new Thread(() -> {
                 try {
@@ -63,4 +63,24 @@ class RoundRobinServerApplicationTests {
         threads.forEach(Thread::start);
         for (var thread : threads) thread.join();
     }
+
+    @Test
+    public void highLoadConcurrentRequests() throws Exception {
+        var threads = new ArrayList<Thread>();
+        for (int i = 0; i < 500; i++) {
+            var body = "{ \"message\": \"Hello," + i + " World!\" }";
+            threads.add(new Thread(() -> {
+                try {
+                    mockMvc.perform(post("/api/echo").content(body))
+                            .andExpect(status().isOk())
+                            .andExpect(content().string(equalTo(body)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }));
+        }
+        threads.forEach(Thread::start);
+        for (var thread : threads) thread.join();
+    }
+
 }

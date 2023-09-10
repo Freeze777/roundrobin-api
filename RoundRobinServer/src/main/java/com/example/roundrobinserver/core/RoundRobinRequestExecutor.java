@@ -1,9 +1,9 @@
-package com.example.roundrobinserver.service;
+package com.example.roundrobinserver.core;
 
 import com.example.roundrobinserver.config.EchoApiConfig;
+import com.example.roundrobinserver.core.models.IRequestExecutor;
+import com.example.roundrobinserver.core.models.ServerStats;
 import com.example.roundrobinserver.service.models.EchoServerResponse;
-import com.example.roundrobinserver.service.models.IRequestExecutor;
-import com.example.roundrobinserver.service.models.ServerStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
-import static com.example.roundrobinserver.service.utils.HttpUtils.*;
+import static com.example.roundrobinserver.utils.HttpUtils.*;
 
 @Service
 public class RoundRobinRequestExecutor implements IRequestExecutor {

@@ -1,4 +1,4 @@
-package com.example.roundrobinserver.service.models;
+package com.example.roundrobinserver.core.models;
 
 import lombok.Getter;
 

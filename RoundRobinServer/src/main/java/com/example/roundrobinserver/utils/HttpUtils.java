@@ -1,4 +1,4 @@
-package com.example.roundrobinserver.service.utils;
+package com.example.roundrobinserver.utils;
 
 import org.springframework.http.*;
 

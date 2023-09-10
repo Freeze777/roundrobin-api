@@ -2,7 +2,7 @@ package com.example.roundrobinserver.service;
 
 
 import com.example.roundrobinserver.service.models.EchoServerResponse;
-import com.example.roundrobinserver.service.models.IRequestExecutor;
+import com.example.roundrobinserver.core.models.IRequestExecutor;
 import com.example.roundrobinserver.service.models.IRoundRobinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
