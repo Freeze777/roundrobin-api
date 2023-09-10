@@ -43,12 +43,12 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
         return executeWithRetryAndBackoff(request, this::executeRequestHelper);
     }
 
-    private EchoServerResponse executeWithRetryAndBackoff(String requestBody, Function<String, EchoServerResponse> executorFunction) {
+    private EchoServerResponse executeWithRetryAndBackoff(String request, Function<String, EchoServerResponse> executorFunction) {
         var retries = retryConfig.getRetries();
         var backoffTimeMs = retryConfig.getBackoffTimeMs();
         EchoServerResponse response = null;
         while (retries > 0) {
-            response = executorFunction.apply(requestBody);
+            response = executorFunction.apply(request);
             if (isSuccessful(response.getStatusCode()) || !isRetryableError(response.getStatusCode())) {
                 logger.info("Request to server {} was completed with {} status", response.getUpstreamServerName(), response.getStatusCode());
                 serverMonitor.updateServerStats(response, true);
@@ -57,7 +57,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
             retries--;
             backoffTimeMs *= retryConfig.getBackoffMultiplier();
             serverMonitor.updateServerStats(response, false);
-            logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms", response.getUpstreamServerName(), serverMonitor.getServerSuccessRate(response.getUpstreamServerName()), requestBody, backoffTimeMs);
+            logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms", response.getUpstreamServerName(), serverMonitor.getServerSuccessRate(response.getUpstreamServerName()), request, backoffTimeMs);
             try {
                 Thread.sleep(backoffTimeMs);
             } catch (InterruptedException e) {

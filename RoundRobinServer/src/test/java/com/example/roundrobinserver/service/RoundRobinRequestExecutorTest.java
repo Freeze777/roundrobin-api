@@ -1,11 +1,6 @@
 package com.example.roundrobinserver.service;
 
-import com.example.roundrobinserver.config.RetryConfig;
-import com.example.roundrobinserver.core.RoundRobinServerSelectionStrategy;
-import com.example.roundrobinserver.core.SimpleMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.RoundRobinRequestExecutor;
-import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
-import com.example.roundrobinserver.core.models.IServerSelectionStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,9 +13,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.stream.Stream;
 
+import static com.example.roundrobinserver.service.utils.TestMocks.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,25 +108,6 @@ public class RoundRobinRequestExecutorTest {
         assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         assertEquals(response.getUpstreamServerName(), "server1");
         assertEquals(response.getErrorMessage().get(), "MockError");
-
     }
 
-
-    private static RetryConfig getMockEchoApiConfig(int retries) {
-        var echoApiConfig = mock(RetryConfig.class);
-        when(echoApiConfig.getRetries()).thenReturn(retries);
-        when(echoApiConfig.getBackoffTimeMs()).thenReturn(1);
-        when(echoApiConfig.getBackoffMultiplier()).thenReturn(2);
-        return echoApiConfig;
-    }
-
-    private static IServerMonitorStrategy getMockMonitorStrategy() {
-        return new SimpleMovingAverageMonitorStrategy(0.1);
-    }
-
-    private static IServerSelectionStrategy getMockServerSelectionStrategy(int numApiServers) {
-        var serverList = new ArrayList<String>();
-        for (int i = 1; i <= numApiServers; i++) serverList.add(String.format("server%d", i));
-        return new RoundRobinServerSelectionStrategy(serverList);
-    }
 }
