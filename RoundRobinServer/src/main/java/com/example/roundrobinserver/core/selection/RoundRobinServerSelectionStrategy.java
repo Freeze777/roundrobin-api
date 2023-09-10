@@ -1,4 +1,4 @@
-package com.example.roundrobinserver.core;
+package com.example.roundrobinserver.core.selection;
 
 import com.example.roundrobinserver.core.models.IServerSelectionStrategy;
 

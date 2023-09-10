@@ -1,4 +1,4 @@
-package com.example.roundrobinserver.core;
+package com.example.roundrobinserver.core.monitor;
 
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
 import com.example.roundrobinserver.core.models.ServerStats;

@@ -1,6 +1,6 @@
 package com.example.roundrobinserver.beans;
 
-import com.example.roundrobinserver.core.SimpleMovingAverageMonitorStrategy;
+import com.example.roundrobinserver.core.monitor.SimpleMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

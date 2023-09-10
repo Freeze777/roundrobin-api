@@ -1,6 +1,6 @@
 package com.example.roundrobinserver.beans;
 
-import com.example.roundrobinserver.core.RoundRobinServerSelectionStrategy;
+import com.example.roundrobinserver.core.selection.RoundRobinServerSelectionStrategy;
 import com.example.roundrobinserver.core.models.IServerSelectionStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
