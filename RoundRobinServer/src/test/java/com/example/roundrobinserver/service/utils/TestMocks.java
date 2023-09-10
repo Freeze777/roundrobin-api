@@ -1,8 +1,8 @@
 package com.example.roundrobinserver.service.utils;
 
 import com.example.roundrobinserver.config.RetryConfig;
+import com.example.roundrobinserver.core.monitor.ExponentialMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.selection.RoundRobinServerSelectionStrategy;
-import com.example.roundrobinserver.core.monitor.SimpleMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
 import com.example.roundrobinserver.core.models.IServerSelectionStrategy;
 
@@ -21,7 +21,7 @@ public class TestMocks {
     }
 
     public static IServerMonitorStrategy getMockMonitorStrategy() {
-        return new SimpleMovingAverageMonitorStrategy(0.1);
+        return new ExponentialMovingAverageMonitorStrategy(0.1);
     }
 
     public static IServerSelectionStrategy getMockServerSelectionStrategy(int numApiServers) {

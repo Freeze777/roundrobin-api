@@ -16,7 +16,7 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
 
     @Override
     public double getServerSuccessRate(String server) {
-        return serverSuccessRate.get(server).getSuccessRate() * 100.0;
+        return serverSuccessRate.get(server).getSuccessRate();
     }
 
     @Override
@@ -32,6 +32,6 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
 
     @Override
     public boolean isUnhealthy(String server) {
-        return serverSuccessRate.containsKey(server) && serverSuccessRate.get(server).getSuccessRate() <= minSuccessRate;
+        return serverSuccessRate.containsKey(server) && getServerSuccessRate(server) <= minSuccessRate;
     }
 }

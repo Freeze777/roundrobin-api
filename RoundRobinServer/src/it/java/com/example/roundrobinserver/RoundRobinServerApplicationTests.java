@@ -48,7 +48,7 @@ class RoundRobinServerApplicationTests {
     @Test
     public void lowLoadConcurrentRequests() throws Exception {
         var threads = new ArrayList<Thread>();
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 15; i++) {
             var body = "{ \"message\": \"Hello," + i + " World!\" }";
             threads.add(new Thread(() -> {
                 try {

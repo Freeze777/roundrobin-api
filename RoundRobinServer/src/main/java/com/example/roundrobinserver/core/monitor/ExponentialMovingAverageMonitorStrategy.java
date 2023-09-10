@@ -17,7 +17,7 @@ public class ExponentialMovingAverageMonitorStrategy implements IServerMonitorSt
 
     @Override
     public double getServerSuccessRate(String server) {
-        return serverSuccessRate.get(server).getSuccessRate() * 100.0;
+        return serverSuccessRate.get(server).getSuccessRate();
     }
 
     @Override

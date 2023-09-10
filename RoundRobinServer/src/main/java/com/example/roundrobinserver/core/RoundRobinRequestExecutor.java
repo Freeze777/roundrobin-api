@@ -44,7 +44,7 @@ public class RoundRobinRequestExecutor implements IRequestExecutor {
     private EchoServerResponse executeRequestHelper(String request) {
         var server = serverSelector.getNextServer();
         if (serverMonitor.isUnhealthy(server)) {
-            logger.warn("Server {} is unhealthy with success-rate={}%", server, serverMonitor.getServerSuccessRate(server));
+            logger.warn("Server {} is unhealthy with success-rate={}", server, serverMonitor.getServerSuccessRate(server));
             return EchoServerResponse.builder().statusCode(HttpStatus.SERVICE_UNAVAILABLE).errorMessage(Optional.of("Service Unavailable")).upstreamServerName(server).build();
         }
         var endpoint = String.format("http://%s/echo", server);

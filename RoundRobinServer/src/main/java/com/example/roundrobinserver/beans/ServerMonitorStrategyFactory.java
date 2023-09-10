@@ -1,8 +1,8 @@
 package com.example.roundrobinserver.beans;
 
-import com.example.roundrobinserver.core.monitor.SimpleMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
-import lombok.Getter;
+import com.example.roundrobinserver.core.monitor.ExponentialMovingAverageMonitorStrategy;
+import com.example.roundrobinserver.core.monitor.SimpleMovingAverageMonitorStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,11 +11,21 @@ import org.springframework.context.annotation.Configuration;
 public class ServerMonitorStrategyFactory {
 
     @Value("${echo.server.health.minsuccessrate}")
-    @Getter
     private double minSuccessRate;
+
+    @Value("${echo.server.health.monitor.strategy}")
+    private String strategy;
 
     @Bean
     public IServerMonitorStrategy getServerMonitorStrategy() {
-        return new SimpleMovingAverageMonitorStrategy(minSuccessRate);
+        switch (strategy) {
+            case "EMA" -> {
+                return new ExponentialMovingAverageMonitorStrategy(minSuccessRate);
+            }
+            case "SMA" -> {
+                return new SimpleMovingAverageMonitorStrategy(minSuccessRate);
+            }
+            default -> throw new IllegalArgumentException("Invalid server monitor strategy");
+        }
     }
 }
