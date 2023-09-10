@@ -4,23 +4,17 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 @Configuration
-public class EchoApiServerConfig {
-    @Value("${echo.server.list}")
-    @Getter
-    private List<String> servers;
-
-    @Value("${echo.server.backoffms}")
+public class RetryConfig {
+    @Value("${echo.server.retry.backoffms}")
     @Getter
     private int backoffTimeMs;
 
-    @Value("${echo.server.retries}")
+    @Value("${echo.server.retry.retries}")
     @Getter
     private int retries;
 
-    @Value("${echo.server.backoffmultiplier}")
+    @Value("${echo.server.retry.backoffmultiplier}")
     @Getter
     private int backoffMultiplier;
 }

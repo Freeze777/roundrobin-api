@@ -1,9 +1,11 @@
 package com.example.roundrobinserver.service;
 
-import com.example.roundrobinserver.config.EchoApiServerConfig;
+import com.example.roundrobinserver.config.RetryConfig;
+import com.example.roundrobinserver.core.RoundRobinServerSelectionStrategy;
 import com.example.roundrobinserver.core.SimpleMovingAverageMonitorStrategy;
 import com.example.roundrobinserver.core.RoundRobinRequestExecutor;
 import com.example.roundrobinserver.core.models.IServerMonitorStrategy;
+import com.example.roundrobinserver.core.models.IServerSelectionStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,13 +39,13 @@ public class RoundRobinRequestExecutorTest {
     @ParameterizedTest
     @MethodSource("happyPathTestData")
     public void testHappyPath(int numApiServers, int retries, HttpStatus mockServerStatus, HttpStatus expectedStatus) {
-        var mockEchoApiConfig = getMockEchoApiConfig(numApiServers, retries);
+        var mockEchoApiConfig = getMockEchoApiConfig(retries);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", mockServerStatus);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
 
         for (int step = 0; step < 5; step++) {
-            var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy());
+            var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy(), getMockServerSelectionStrategy(numApiServers));
             for (int i = 1; i <= numApiServers; i++) {
                 var response = roundRobinRequestExecutor.executeRequest("MockRequest");
                 assertEquals(response.getStatusCode(), expectedStatus);
@@ -56,12 +58,12 @@ public class RoundRobinRequestExecutorTest {
     @Test
     public void testAllServersUnhealthy() {
         int numApiServers = 3;
-        var mockEchoApiConfig = getMockEchoApiConfig(numApiServers, 2);
+        var mockEchoApiConfig = getMockEchoApiConfig(2);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", HttpStatus.INTERNAL_SERVER_ERROR);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
 
-        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy());
+        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy(), getMockServerSelectionStrategy(numApiServers));
         for (int i = 1; i <= 20; i++) {
             assertTrue(roundRobinRequestExecutor.executeRequest("MockRequest").getStatusCode().is5xxServerError());
         }
@@ -75,12 +77,12 @@ public class RoundRobinRequestExecutorTest {
     @Test
     public void testRetry() {
         int numApiServers = 3;
-        var mockEchoApiConfig = getMockEchoApiConfig(numApiServers, numApiServers);
+        var mockEchoApiConfig = getMockEchoApiConfig(numApiServers);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", HttpStatus.INTERNAL_SERVER_ERROR);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
 
-        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy());
+        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy(), getMockServerSelectionStrategy(numApiServers));
         var response = roundRobinRequestExecutor.executeRequest("MockRequest");
         assertTrue(response.getStatusCode().is5xxServerError());
         assertEquals(response.getUpstreamServerName(), "server3");
@@ -89,11 +91,11 @@ public class RoundRobinRequestExecutorTest {
 
     @Test
     public void testHttpClientErrorException() {
-        var mockEchoApiConfig = getMockEchoApiConfig(3, 1);
+        var mockEchoApiConfig = getMockEchoApiConfig(1);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "MockError"));
 
-        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy());
+        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy(), getMockServerSelectionStrategy(3));
         var response = roundRobinRequestExecutor.executeRequest("MockRequest");
         assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
         assertEquals(response.getUpstreamServerName(), "server1");
@@ -102,11 +104,11 @@ public class RoundRobinRequestExecutorTest {
 
     @Test
     public void testIOErrors() {
-        var mockEchoApiConfig = getMockEchoApiConfig(3, 1);
+        var mockEchoApiConfig = getMockEchoApiConfig(1);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenThrow(new ResourceAccessException("MockError"));
 
-        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy());
+        var roundRobinRequestExecutor = new RoundRobinRequestExecutor(mockEchoApiConfig, restTemplate, getMockMonitorStrategy(), getMockServerSelectionStrategy(3));
         var response = roundRobinRequestExecutor.executeRequest("MockRequest");
         assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         assertEquals(response.getUpstreamServerName(), "server1");
@@ -115,19 +117,21 @@ public class RoundRobinRequestExecutorTest {
     }
 
 
-    private static EchoApiServerConfig getMockEchoApiConfig(int numApiServers, int retries) {
-        var echoApiConfig = mock(EchoApiServerConfig.class);
-        var serverList = new ArrayList<String>();
-        for (int i = 1; i <= numApiServers; i++) serverList.add(String.format("server%d", i));
-        when(echoApiConfig.getServers()).thenReturn(serverList);
+    private static RetryConfig getMockEchoApiConfig(int retries) {
+        var echoApiConfig = mock(RetryConfig.class);
         when(echoApiConfig.getRetries()).thenReturn(retries);
         when(echoApiConfig.getBackoffTimeMs()).thenReturn(1);
         when(echoApiConfig.getBackoffMultiplier()).thenReturn(2);
-        when(echoApiConfig.getServers()).thenReturn(serverList);
         return echoApiConfig;
     }
 
     private static IServerMonitorStrategy getMockMonitorStrategy() {
         return new SimpleMovingAverageMonitorStrategy(0.1);
+    }
+
+    private static IServerSelectionStrategy getMockServerSelectionStrategy(int numApiServers) {
+        var serverList = new ArrayList<String>();
+        for (int i = 1; i <= numApiServers; i++) serverList.add(String.format("server%d", i));
+        return new RoundRobinServerSelectionStrategy(serverList);
     }
 }
