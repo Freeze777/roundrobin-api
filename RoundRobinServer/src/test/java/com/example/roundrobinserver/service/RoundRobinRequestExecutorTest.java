@@ -34,7 +34,7 @@ public class RoundRobinRequestExecutorTest {
     @ParameterizedTest
     @MethodSource("happyPathTestData")
     public void testHappyPath(int numApiServers, int retries, HttpStatus mockServerStatus, HttpStatus expectedStatus) {
-        var mockEchoApiConfig = getMockEchoApiConfig(retries);
+        var mockEchoApiConfig = getMockRetryConfig(retries);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", mockServerStatus);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
@@ -53,7 +53,7 @@ public class RoundRobinRequestExecutorTest {
     @Test
     public void testAllServersUnhealthy() {
         int numApiServers = 3;
-        var mockEchoApiConfig = getMockEchoApiConfig(2);
+        var mockEchoApiConfig = getMockRetryConfig(2);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", HttpStatus.INTERNAL_SERVER_ERROR);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
@@ -72,7 +72,7 @@ public class RoundRobinRequestExecutorTest {
     @Test
     public void testRetry() {
         int numApiServers = 3;
-        var mockEchoApiConfig = getMockEchoApiConfig(numApiServers);
+        var mockEchoApiConfig = getMockRetryConfig(numApiServers);
         var mockResponseEntity = new ResponseEntity<>("MockResponse", HttpStatus.INTERNAL_SERVER_ERROR);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenReturn(mockResponseEntity);
@@ -86,7 +86,7 @@ public class RoundRobinRequestExecutorTest {
 
     @Test
     public void testHttpClientErrorException() {
-        var mockEchoApiConfig = getMockEchoApiConfig(1);
+        var mockEchoApiConfig = getMockRetryConfig(1);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "MockError"));
 
@@ -99,7 +99,7 @@ public class RoundRobinRequestExecutorTest {
 
     @Test
     public void testIOErrors() {
-        var mockEchoApiConfig = getMockEchoApiConfig(1);
+        var mockEchoApiConfig = getMockRetryConfig(1);
         var restTemplate = mock(RestTemplate.class);
         when(restTemplate.exchange(anyString(), Mockito.eq(HttpMethod.POST), any(), Mockito.eq(String.class), any(Object[].class))).thenThrow(new ResourceAccessException("MockError"));
 

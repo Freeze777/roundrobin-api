@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestMocks {
-    public static RetryConfig getMockEchoApiConfig(int retries) {
+    public static RetryConfig getMockRetryConfig(int retries) {
         var echoApiConfig = mock(RetryConfig.class);
         when(echoApiConfig.getRetries()).thenReturn(retries);
         when(echoApiConfig.getBackoffTimeMs()).thenReturn(1);
