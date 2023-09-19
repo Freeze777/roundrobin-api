@@ -1,5 +1,5 @@
 ## HTTP Round Robin API
-This repo is a monorepo containing 2 projects:
+This repo contains 2 projects:
 - EchoServer : A simple echo server that returns the same JSON request body.
 - RoundRobinServer : A simple proxy server that forwards requests to a list of echo servers in a round-robin fashion.
 
