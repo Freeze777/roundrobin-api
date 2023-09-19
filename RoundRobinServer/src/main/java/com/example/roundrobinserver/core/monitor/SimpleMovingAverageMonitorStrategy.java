@@ -35,4 +35,9 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
     public boolean isUnhealthy(String server) {
         return serverSuccessRate.containsKey(server) && getServerSuccessRate(server) <= minSuccessRate;
     }
+
+    @Override
+    public Map<String, ServerStats> getServerSuccessRates() {
+        return serverSuccessRate;
+    }
 }

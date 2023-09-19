@@ -2,8 +2,10 @@ package com.example.roundrobinserver.core.models;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 
+@ToString
 public class ServerStats {
     @Setter
     @Getter

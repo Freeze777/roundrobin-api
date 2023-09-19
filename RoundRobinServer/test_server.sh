@@ -50,3 +50,8 @@ echo "-------------------"
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{}'
+
+echo ""
+echo "-------------------"
+curl --location 'http://localhost:9001/healthstats' \
+--header 'Content-Type: application/json' \

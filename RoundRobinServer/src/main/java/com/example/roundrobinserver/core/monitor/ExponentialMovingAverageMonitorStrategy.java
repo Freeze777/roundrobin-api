@@ -25,9 +25,10 @@ public class ExponentialMovingAverageMonitorStrategy implements IServerMonitorSt
     public void updateServerStats(String server, boolean isSuccess) {
         serverSuccessRate.compute(server, (k, v) -> {
             if (v == null) return new ServerStats();
-            if(isUnhealthy(server)) return v;
+            if (isUnhealthy(server)) return v;
             var stats = serverSuccessRate.get(k);
             stats.setSuccessRate(alpha * stats.getSuccessRate() + (isSuccess ? (1.0 - alpha) : 0.0));
+            stats.setTotalRequests(stats.getTotalRequests() + 1);
             return stats;
         });
     }
@@ -35,5 +36,10 @@ public class ExponentialMovingAverageMonitorStrategy implements IServerMonitorSt
     @Override
     public boolean isUnhealthy(String server) {
         return serverSuccessRate.containsKey(server) && getServerSuccessRate(server) <= minSuccessRate;
+    }
+
+    @Override
+    public Map<String, ServerStats> getServerSuccessRates() {
+        return serverSuccessRate;
     }
 }
