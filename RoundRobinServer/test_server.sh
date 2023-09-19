@@ -1,3 +1,7 @@
+## 1 simple request
+echo "-------------------"
+echo "1"
+echo "-------------------"
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -5,10 +9,13 @@ curl --location 'http://localhost:9001/api/echo' \
     "text" : "Hello world",
     "whatever": "blah blah"
 }'
-
 echo ""
+
+echo "-------------------"
+echo "2"
 echo "-------------------"
 
+## 2 bad request
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -16,10 +23,13 @@ curl --location 'http://localhost:9001/api/echo' \
     "text" : "Hello world",
     "broken-text": "blah blah
 }'
-
 echo ""
+
+echo "-------------------"
+echo "3"
 echo "-------------------"
 
+## 3 simple request
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -27,11 +37,13 @@ curl --location 'http://localhost:9001/api/echo' \
     "foo" : "Foo",
     "bar": "Bar"
 }'
-
 echo ""
+
+echo "-------------------"
+echo "4"
 echo "-------------------"
 
-# huge payload
+## 4 big payload
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -42,16 +54,29 @@ curl --location 'http://localhost:9001/api/echo' \
     "quux": "Sed arcu. Cras consequat. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna",
     "quuz": "Cras convallis tellus et elit aliquet, vitae dignissim tellus elementum. Maecenas at aliquet eros, in sollicitudin orci. Aliquam erat volutpat. Donec vitae tincidunt eros."
 }'
-
 echo ""
+
+echo "-------------------"
+echo "5"
 echo "-------------------"
 
 # no payload
 curl --location 'http://localhost:9001/api/echo' \
 --header 'Content-Type: application/json' \
 --data '{}'
-
 echo ""
+
+echo "-------------------"
+echo "6"
+echo "-------------------"
+# no payload
+curl --location 'http://localhost:9001/api/echo' \
+--header 'Content-Type: application/json' \
+--data '{"1":"2"}'
+echo ""
+
+echo "-------------------"
+echo "stats"
 echo "-------------------"
 curl --location 'http://localhost:9001/healthstats' \
 --header 'Content-Type: application/json' \
