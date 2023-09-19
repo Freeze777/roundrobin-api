@@ -23,6 +23,7 @@ public class SimpleMovingAverageMonitorStrategy implements IServerMonitorStrateg
     public void updateServerStats(String server, boolean isSuccess) {
         serverSuccessRate.compute(server, (k, v) -> {
             if (v == null) return new ServerStats();
+            if(isUnhealthy(server)) return v;
             var stats = serverSuccessRate.get(k);
             stats.setSuccessRate((stats.getSuccessRate() * stats.getTotalRequests() + (isSuccess ? 1.0 : 0.0)) / (stats.getTotalRequests() + 1.0));
             stats.setTotalRequests(stats.getTotalRequests() + 1);
