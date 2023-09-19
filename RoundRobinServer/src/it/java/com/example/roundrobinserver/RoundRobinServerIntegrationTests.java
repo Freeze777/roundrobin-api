@@ -65,8 +65,9 @@ class RoundRobinServerIntegrationTests {
             });
             t.setName("Thread-" + i);
             threads.add(t);
+            Thread.sleep(100); // approx 10 RPS
+            t.start();
         }
-        threads.forEach(Thread::start);
         for (var thread : threads) thread.join();
         assertTrue(exceptions.isEmpty());
     }
