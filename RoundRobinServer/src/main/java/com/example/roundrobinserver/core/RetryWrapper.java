@@ -35,7 +35,7 @@ public class RetryWrapper {
             retries--;
             backoffTimeMs *= retryConfig.getBackoffMultiplier();
             serverMonitor.updateServerStats(response.getUpstreamServerName(), false);
-            logger.error("Request to server {} with success-rate={}% failed for {}. Retrying in {} ms", response.getUpstreamServerName(), serverMonitor.getServerSuccessRate(response.getUpstreamServerName()), request, backoffTimeMs);
+            logger.error("Request to server {} with success-rate={} failed for {}. Retrying in {} ms", response.getUpstreamServerName(), serverMonitor.getServerSuccessRate(response.getUpstreamServerName()), request, backoffTimeMs);
             try {
                 Thread.sleep(backoffTimeMs);
             } catch (InterruptedException e) {
