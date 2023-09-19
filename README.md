@@ -12,7 +12,7 @@ This repo is a monorepo containing 2 projects:
 - simple spring boot application
 - forward requests to a list of echo servers in a round-robin fashion
 - the list of echo servers is defined in the `application.properties` file
-- returns a 503 BAD GATEWAY when it cannot reach the echo servers.
+- returns a 502 BAD GATEWAY when it cannot reach the echo servers.
 - returns same response as the echo servers
 
 #### Reliability
